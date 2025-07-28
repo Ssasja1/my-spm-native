@@ -40,29 +40,28 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     }
   };
 
-  const handleSubmit = async () => {
-    const newErrors: Partial<LoginFormData> = {};
-    if (!formData.email) newErrors.email = 'Email es requerido';
-    if (!formData.password) newErrors.password = 'Contraseña es requerida';
+ const handleSubmit = async () => {
+  const newErrors: Partial<LoginFormData> = {};
+  if (!formData.email) newErrors.email = 'Email es requerido';
+  if (!formData.password) newErrors.password = 'Contraseña es requerida';
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
 
-    setProcessing(true);
+  setProcessing(true);
 
-     try {
+  try {
     const user = await login(formData.email, formData.password);
     console.log('Login exitoso:', user);
 
-    const userId = user.usuario?.id_usuario || user.id; // Ajusta según estructura
+    const userId = user.usuario?.id_usuario || user.id;
     const userType = user.usuario?.tipo || user.tipo;
 
-    // Guardar ID del usuario
     await AsyncStorage.setItem('user_id', String(userId));
 
-    // Solo si es atleta, obtener y guardar id_atleta
+    // Redirige según el tipo de usuario
     if (userType === 'atleta') {
       const res = await fetch(`http://localhost:8000/atletas/usuario/${userId}`);
       if (!res.ok) {
@@ -72,12 +71,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
       }
 
       const atleta = await res.json();
-      console.log('Atleta obtenido:', atleta);
       await AsyncStorage.setItem('atleta_id', String(atleta.id_atleta));
+      router.replace('/(tabs)/DashboardAtleta');
+    } else if (userType === 'entrenador') {
+      router.replace('/coach/DashboardCoach');
+    } else {
+      throw new Error('Tipo de usuario no reconocido');
     }
 
-    // Redirige al dashboard del atleta
-    router.replace('/(tabs)/DashboardAtleta');
   } catch (error: any) {
     console.error('Error al iniciar sesión:', error);
     setErrors({ password: error.message });

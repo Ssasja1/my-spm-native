@@ -80,5 +80,19 @@ export const getAtletaById = async () => {
 };
 
 
+export const getCoachById = async (id_usuario) => {
+  const response = await fetch(`http://localhost:8000/coaches/${id_usuario}`);
+
+  if (!response.ok) {
+    const raw = await response.text();
+    console.error('Respuesta no OK:', raw);
+    throw new Error('No se pudo obtener la información del coach');
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+
 
 

@@ -68,7 +68,7 @@ export default function CoachDashboard() {
             <TouchableOpacity 
               key={atleta.id_atleta}
               style={styles.athleteCard}
-              onPress={() => router.push(`/coach/atleta/${atleta.id_atleta}`)}
+            //   onPress={() => router.push(`/coach/atleta/${atleta.id_atleta}`)}
             >
               <Text style={styles.athleteName}>{atleta.nombre_completo}</Text>
               <View style={styles.athleteDetails}>
@@ -83,7 +83,7 @@ export default function CoachDashboard() {
 
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => router.push('/coach/agregar-atleta')}
+        // onPress={() => router.push('/coach/agregar-atleta')}
       >
         <Text style={styles.addButtonText}>+ Agregar Atleta</Text>
       </TouchableOpacity>

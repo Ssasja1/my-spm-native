@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, StyleSheet, Alert, ScrollView } from 're
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
+const API_URL = 'http://192.168.68.102:8000'; // ✅ Usa tu IP local aquí
+//const API_URL = 'http://localhost:8000';  aca usas el que estes usando en tu entorno de desarrollo
 
 export default function EditarPerfilAtleta() {
   const router = useRouter();
@@ -20,7 +22,7 @@ export default function EditarPerfilAtleta() {
   useEffect(() => {
     const loadData = async () => {
       const atleta_id = await AsyncStorage.getItem('atleta_id');
-      const res = await fetch(`http://localhost:8000/atletas/basico/${atleta_id}`);
+      const res = await fetch(`${API_URL}/atletas/basico/${atleta_id}`);
       const data = await res.json();
       setForm({
         nombre_completo: data.nombre_completo || '',
@@ -48,7 +50,7 @@ export default function EditarPerfilAtleta() {
   }
 
   try {
-    const res = await fetch(`http://localhost:8000/atletas/editar/${atleta_id}`, {
+     const res = await fetch(`${API_URL}/atletas/editar/${atleta_id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

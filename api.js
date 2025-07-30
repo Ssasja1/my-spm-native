@@ -1,7 +1,8 @@
 // api.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://localhost:8000'; // Reemplaza con tu IP real si usas un emulador o dispositivo físico
+//const API_URL = 'http://localhost:8000'; // Reemplaza con tu IP real si usas un emulador o dispositivo físico
+const API_URL = 'http://192.168.68.102:8000';
 
 export async function registrar(formData) {
     const endpoint = `${API_URL}/registro/`;
@@ -62,13 +63,13 @@ export async function login(email, password) {
 }
 
 export const getAtletaById = async () => {
-  const id = await AsyncStorage.getItem('atleta_id'); // Cambiado
+  const id = await AsyncStorage.getItem('atleta_id');
 
   if (!id) {
     throw new Error('ID de atleta no encontrado');
   }
 
-  const response = await fetch(`http://localhost:8000/atletas/${id}`);
+  const response = await fetch(`${API_URL}/atletas/${id}`);
   if (!response.ok) {
     const raw = await response.text();
     console.error('Respuesta no OK:', raw);
@@ -79,9 +80,8 @@ export const getAtletaById = async () => {
   return data;
 };
 
-
 export const getCoachById = async (id_usuario) => {
-  const response = await fetch(`http://localhost:8000/coaches/${id_usuario}`);
+  const response = await fetch(`${API_URL}/coaches/${id_usuario}`);
 
   if (!response.ok) {
     const raw = await response.text();
@@ -93,6 +93,64 @@ export const getCoachById = async (id_usuario) => {
   return data;
 };
 
+export const createWorkout = async (entrenamiento) => {
+  const response = await fetch(`${API_URL}/coaches/entrenamientos`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(entrenamiento),
+  });
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error al crear entrenamiento:', errorText);
+    throw new Error('No se pudo crear el entrenamiento');
+  }
 
+  return await response.json();
+};
+
+export const getWorkoutsByCoach = async (id_entrenador) => {
+  const response = await fetch(`${API_URL}/coaches/entrenamientos/coach/${id_entrenador}`);
+
+  if (!response.ok) {
+    const raw = await response.text();
+    console.error('Respuesta no OK:', raw);
+    throw new Error('No se pudo obtener los entrenamientos');
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const getWorkoutById = async (id_entrenamiento) => {
+  const response = await fetch(`${API_URL}/coaches/entrenamientos/${id_entrenamiento}`);
+
+  if (!response.ok) {
+    const raw = await response.text();
+    console.error('Error al obtener entrenamiento:', raw);
+    throw new Error('No se pudo obtener el entrenamiento');
+  }
+
+  return await response.json();
+};
+
+export const updateWorkout = async (id_entrenamiento, updatedData) => {
+  const response = await fetch(`${API_URL}/coaches/entrenamientos/${id_entrenamiento}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updatedData),
+  });
+
+  if (!response.ok) {
+    const raw = await response.text();
+    console.error('Error actualizando:', raw);
+    throw new Error('No se pudo actualizar el entrenamiento');
+  }
+
+  return await response.json();
+};
 

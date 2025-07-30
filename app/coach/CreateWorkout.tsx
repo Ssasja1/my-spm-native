@@ -1,80 +1,174 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from '@react-native-picker/picker';
+import { createWorkout, getCoachById } from '../../api'; // Asegúrate que estén bien importadas
 
-interface Atleta {
-  id_atleta: number;
-  nombre_completo: string;
-  deporte: string;
-  edad: number;
-  frecuencia_cardiaca_maxima?: number;
-  frecuencia_cardiaca_minima?: number;
+
+export default function CrearEntrenamiento() {
+  const [titulo, setTitulo] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [duracion, setDuracion] = useState('');
+  const [nivel, setNivel] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const niveles = ['principiante', 'intermedio', 'avanzado'];
+
+const crearEntrenamiento = async () => {
+  if (!titulo || !duracion || !nivel) {
+    Alert.alert('Error', 'Todos los campos obligatorios deben ser completados.');
+    return;
+  }
+
+  if (!niveles.includes(nivel)) {
+    Alert.alert('Error', 'El nivel de dificultad no es válido.');
+    return;
+  }
+
+  setLoading(true);
+
+try {
+  const id_usuario = await AsyncStorage.getItem('user_id');
+  if (!id_usuario) throw new Error('ID del usuario no encontrado.');
+
+  // ✅ Obtener el perfil del coach y su id_entrenador
+  const coach = await getCoachById(id_usuario);
+  const id_entrenador = coach.id_entrenador;
+
+  // ✅ Crear el entrenamiento con el ID correcto
+  const data = await createWorkout({
+    id_entrenador,
+    titulo,
+    descripcion,
+    duracion_estimada: parseInt(duracion),
+    nivel_dificultad: nivel,
+  });
+
+  Alert.alert('Éxito', 'Entrenamiento creado correctamente. ID: ' + data.id_entrenamiento);
+  setTitulo('');
+  setDescripcion('');
+  setDuracion('');
+  setNivel('');
+} catch (error) {
+  console.error('Error al crear entrenamiento:', error);
+
+  if (error instanceof Error) {
+    Alert.alert('Error', error.message);
+  } else {
+    Alert.alert('Error', 'Ocurrió un error al crear el entrenamiento.');
+  }
+} finally {
+  setLoading(false);
 }
-
-export default function CoachDashboard() {
-  const router = useRouter();
-  const [atletas, setAtletas] = useState<Atleta[]>([]);
-  const [loading, setLoading] = useState(true);
-
- 
+}
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>CreateWorkout</Text>
-      </ScrollView>
-   )
+      <Text style={styles.header}>Crear Nuevo Entrenamiento</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Título del Entrenamiento"
+        value={titulo}
+        onChangeText={setTitulo}
+      />
+
+      <TextInput
+        style={[styles.input, styles.textarea]}
+        placeholder="Descripción (opcional)"
+        multiline
+        numberOfLines={4}
+        value={descripcion}
+        onChangeText={setDescripcion}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Duración Estimada (min)"
+        keyboardType="numeric"
+        value={duracion}
+        onChangeText={setDuracion}
+      />
+
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={nivel}
+          onValueChange={(itemValue) => setNivel(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Selecciona nivel de dificultad..." value="" />
+          <Picker.Item label="Principiante" value="principiante" />
+          <Picker.Item label="Intermedio" value="intermedio" />
+          <Picker.Item label="Avanzado" value="avanzado" />
+        </Picker>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#3b82f6" />
+      ) : (
+        <TouchableOpacity style={styles.button} onPress={crearEntrenamiento}>
+          <Text style={styles.buttonText}>Crear Entrenamiento</Text>
+        </TouchableOpacity>
+      )}
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: '#f9fafb',
     flexGrow: 1,
+    padding: 20,
+    backgroundColor: '#f8fafc',
   },
-  title: {
-    fontSize: 26,
+  header: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: '#1e293b',
     marginBottom: 20,
     textAlign: 'center',
   },
-  athleteCard: {
+  input: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 8,
+    padding: 14,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  athleteName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  athleteDetails: {
-    marginTop: 8,
-  },
-  error: {
-    padding: 16,
-    textAlign: 'center',
     fontSize: 16,
-    color: '#b91c1c',
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
   },
-  addButton: {
-    backgroundColor: '#3b82f6',
-    paddingVertical: 14,
-    borderRadius: 10,
+  textarea: {
+    textAlignVertical: 'top',
+  },
+  button: {
+    backgroundColor: '#10b981',
+    padding: 16,
+    borderRadius: 8,
     alignItems: 'center',
-    marginTop: 16,
   },
-  addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pickerContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
     fontSize: 16,
   },
 });

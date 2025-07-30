@@ -12,6 +12,10 @@ import { Link, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login } from '../api';
 
+
+const API_URL = 'http://192.168.68.102:8000'; // ✅ Usa tu IP local aquí
+//const API_URL = 'http://localhost:8000';  aca usas el que estes usando en tu entorno de desarrollo
+
 type LoginFormData = {
   email: string;
   password: string;
@@ -63,7 +67,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
     // Redirige según el tipo de usuario
     if (userType === 'atleta') {
-      const res = await fetch(`http://localhost:8000/atletas/usuario/${userId}`);
+      const res = await fetch(`${API_URL}/atletas/usuario/${userId}`);
       if (!res.ok) {
         const raw = await res.text();
         console.error('Respuesta no OK atleta:', raw);

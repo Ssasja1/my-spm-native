@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login } from '../api';
 
 
-const API_URL = 'http://192.168.68.102:8000'; // ✅ Usa tu IP local aquí
+const API_URL = 'http://192.168.101.9:8000'; // ✅ Usa tu IP local aquí
 //const API_URL = 'http://localhost:8000';  aca usas el que estes usando en tu entorno de desarrollo
 
 type LoginFormData = {

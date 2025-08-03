@@ -36,6 +36,7 @@ export default function DashboardCoach() {
         }
 
         const data = await getCoachDashboard(id);
+        console.log('Datos del coach:', data);
         setCoach(data);
       } catch (error) {
         console.error('Error al cargar el panel del coach:', error);

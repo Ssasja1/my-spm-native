@@ -1,265 +1,184 @@
-import { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
   ScrollView,
-  Switch,
+  StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login } from '../api';
 
-
-const API_URL = 'http://192.168.68.102:8000'; // ✅ Usa tu IP local aquí
-//const API_URL = 'http://localhost:8000';  aca usas el que estes usando en tu entorno de desarrollo
-
-type LoginFormData = {
-  email: string;
-  password: string;
-  remember: boolean;
-};
-
-type LoginProps = {
-  status?: string;
-  canResetPassword?: boolean;
-};
-
-export default function Login({ status, canResetPassword }: LoginProps) {
-  const router = useRouter();
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
-    remember: false,
-  });
-  const [errors, setErrors] = useState<Partial<LoginFormData>>({});
-  const [processing, setProcessing] = useState(false);
-
-  const handleChange = (field: keyof LoginFormData, value: string | boolean) => {
-    setFormData({ ...formData, [field]: value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
-    }
+export default function DashboardCoach() {
+  const coach = {
+    id_entrenador: 1,
+    nombre_completo: 'Maritza Mtz',
+    fecha_nacimiento: '1995-08-04',
+    especialidad: 'Entrenamiento funcional',
+    experiencia: '5 años en preparación física y resistencia',
   };
-
- const handleSubmit = async () => {
-  const newErrors: Partial<LoginFormData> = {};
-  if (!formData.email) newErrors.email = 'Email es requerido';
-  if (!formData.password) newErrors.password = 'Contraseña es requerida';
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
-
-  setProcessing(true);
-
-  try {
-    const user = await login(formData.email, formData.password);
-    console.log('Login exitoso:', user);
-
-    const userId = user.usuario?.id_usuario || user.id;
-    const userType = user.usuario?.tipo || user.tipo;
-
-    await AsyncStorage.setItem('user_id', String(userId));
-
-    // Redirige según el tipo de usuario
-    if (userType === 'atleta') {
-      const res = await fetch(`${API_URL}/atletas/usuario/${userId}`);
-      if (!res.ok) {
-        const raw = await res.text();
-        console.error('Respuesta no OK atleta:', raw);
-        throw new Error('No se pudo obtener el perfil del atleta');
-      }
-
-      const atleta = await res.json();
-      await AsyncStorage.setItem('atleta_id', String(atleta.id_atleta));
-      router.replace('/(tabs)/DashboardAtleta');
-    } else if (userType === 'entrenador') {
-      router.replace('/coach/DashboardCoach');
-    } else {
-      throw new Error('Tipo de usuario no reconocido');
-    }
-
-  } catch (error: any) {
-    console.error('Error al iniciar sesión:', error);
-    setErrors({ password: error.message });
-  } finally {
-    setProcessing(false);
-  }
-};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
-        {status && (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>{status}</Text>
-          </View>
-        )}
+      <View style={styles.header}>
+                    <Text style={styles.mainTitle}>PANEL DEL ENTRENADOR</Text>
+                    <Text style={styles.subtitle}>Gestión de tu perfil profesional</Text>
+                    <View style={styles.divider} />
+                  </View>
 
-        <Text style={styles.title}>SPM</Text>
+      <View style={styles.content}>
+        <Text style={[styles.description, { marginBottom: 50 }]}>
+          Aquí encontrarás toda tu información personal como entrenador.
+          Este panel está diseñado para ayudarte a gestionar tus datos,
+          mantener un control de tu especialidad, tu experiencia profesional
+          y más adelante podrás acceder a los atletas que tienes asignados,
+          entrenamientos creados y estadísticas relevantes para tu desempeño.
+        </Text>
 
-        <View style={styles.formContainer}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Correo electrónico</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ingresa tu correo electrónico"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={formData.email}
-              onChangeText={(text) => handleChange('email', text)}
-            />
-            {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-          </View>
+        <Text style={styles.title}>Información Personal</Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contraseña</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ingresa tu contraseña"
-              secureTextEntry
-              value={formData.password}
-              onChangeText={(text) => handleChange('password', text)}
-            />
-            {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+        <View style={styles.card}>
+          <View style={styles.infoSection}>
+            <Text style={styles.infoLabel}>Nombre completo</Text>
+            <Text style={styles.infoText}>{coach.nombre_completo}</Text>
           </View>
 
-          <View style={styles.rememberContainer}>
-            <Switch
-              value={formData.remember}
-              onValueChange={(value) => handleChange('remember', value)}
-              trackColor={{ false: '#767577', true: '#f97316' }}
-              thumbColor={formData.remember ? '#fff' : '#f4f3f4'}
-            />
-            <Text style={styles.rememberText}>Recuérdame</Text>
+          <View style={styles.divider} />
+
+          <View style={styles.infoSection}>
+            <Text style={styles.infoLabel}>Fecha de nacimiento</Text>
+            <Text style={styles.infoText}>{coach.fecha_nacimiento}</Text>
           </View>
 
-          <View style={styles.actionsContainer}>
-            <TouchableOpacity
-              style={[styles.button, processing && styles.buttonDisabled]}
-              onPress={handleSubmit}
-              disabled={processing}
-            >
-              <Text style={styles.buttonText}>
-                {processing ? 'Procesando...' : 'Iniciar sesión'}
-              </Text>
-            </TouchableOpacity>
+          <View style={styles.divider} />
+
+          <View style={styles.infoSection}>
+            <Text style={styles.infoLabel}>Especialidad</Text>
+            <Text style={styles.infoText}>{coach.especialidad}</Text>
           </View>
 
-          {/* Botón para registrar una nueva cuenta */}
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={() => router.push('/register')} // Asegúrate que esta ruta existe
-          >
-            <Text style={styles.registerText}>¿No tienes cuenta? Regístrate</Text>
-          </TouchableOpacity>
+          <View style={styles.divider} />
+
+          <View style={styles.infoSection}>
+            <Text style={styles.infoLabel}>Experiencia</Text>
+            <Text style={styles.infoText}>{coach.experiencia}</Text>
+          </View>
         </View>
+
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => alert('Cerrar sesión (modo demo)')}
+        >
+          <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
+    padding: 16,
+    backgroundColor: '#0A0A0A',
+  },
+  header: {
+    paddingTop: 50,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#f1f1f1ff',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  mainTitle: { 
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FF6B00', 
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
+  },
+  divider: { //rayita naranja de arriba
+    width: 60,
+    height: 2,
+    backgroundColor: '#FF6B00',
+    marginVertical: 12,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#b9b9b9ff',
+    marginBottom: 10,
+    marginTop: 8,
+    letterSpacing: 2,
+    fontFamily: 'monospace',
+  },
+  content: {
     padding: 20,
   },
+  description: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#a3a3a3ff',
+    marginBottom: 24,
+    textAlign: 'justify',
+  },
   card: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: '#252525ff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
   },
-  statusContainer: {
-    marginBottom: 16,
+  infoSection: {
+    marginVertical: 8,
   },
-  statusText: {
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#16a34a',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 32,
-    textAlign: 'center',
-    color: '#f97316',
-  },
-  formContainer: {
-    gap: 20,
-  },
-  inputGroup: {
-    gap: 4,
-  },
-  label: {
+  infoLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: '#a3a3a3ff',
+    marginBottom: 4,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#fb923c',
-    borderRadius: 12,
-    padding: 12,
+  infoText: {
     fontSize: 16,
+    color: '#f1f1f1ff',
   },
-  rememberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  logoutButton: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginTop: 25,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 8,
   },
-  rememberText: {
-    fontSize: 14,
-    color: '#4b5563',
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  forgotPassword: {
-    color: '#f97316',
-    fontSize: 14,
-    textDecorationLine: 'underline',
-  },
-  button: {
-    backgroundColor: '#f97316',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#fb923c',
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  logoutButtonText: {
+    color: '#FF6B00',
     fontSize: 16,
-  },
-  registerButton: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  registerText: {
-    color: '#f97316',
-    fontSize: 14,
-    fontWeight: '500',
-    textDecorationLine: 'underline',
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
   },
   error: {
-    color: 'red',
-    fontSize: 12,
-    marginTop: 4,
+    padding: 16,
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#b91c1c',
   },
 });

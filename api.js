@@ -1,8 +1,8 @@
-// api.ts
+// api.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //const API_URL = 'http://localhost:8000'; // Reemplaza con tu IP real si usas un emulador o dispositivo físico
-const API_URL = 'http://192.168.68.102:8000';
+const API_URL = 'http://192.168.68.104:8000';
 
 export async function registrar(formData) {
     const endpoint = `${API_URL}/registro/`;
@@ -69,7 +69,8 @@ export const getAtletaById = async () => {
     throw new Error('ID de atleta no encontrado');
   }
 
-  const response = await fetch(`${API_URL}/atletas/${id}`);
+  // ✅ Después (ruta más específica y sin conflicto)
+  const response = await fetch(`${API_URL}/atletas/perfil/${id}`);
   if (!response.ok) {
     const raw = await response.text();
     console.error('Respuesta no OK:', raw);

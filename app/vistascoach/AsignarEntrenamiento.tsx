@@ -18,7 +18,7 @@ interface Atleta {
 }
 
 // Cambia esta URL a la dirección de tu backend FastAPI
-const BASE_URL = 'http://192.168.101.9:8000'; // Ajusta a tu IP o localhost
+const BASE_URL = 'http://localhost:8000'; // Ajusta a tu IP o localhost
 
 async function fetchAtletas(id_entrenador: number): Promise<Atleta[]> {
   const response = await fetch(`${BASE_URL}/coaches/${id_entrenador}/atletas`);

@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getAtletaById } from '../../api'; // Debes crear esta función en api.ts
+import { getAtletaById } from '../../api';
 import { TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Entrenamiento {
-  id: number;
+  id_entrenamiento: number;
   titulo: string;
   descripcion?: string;
   duracion_estimada?: number;
   nivel_dificultad?: 'principiante' | 'intermedio' | 'avanzado';
-  estado?: string;
+}
+
+interface Asignacion {
+  id_asignacion: number;
+  estado: string;
+  entrenamiento: Entrenamiento;
 }
 
 interface Atleta {
@@ -24,9 +29,8 @@ interface Atleta {
   frecuencia_cardiaca_maxima?: number;
   frecuencia_cardiaca_minima?: number;
   nombre_entrenador?: string;
-  entrenamientos?: Entrenamiento[];
+  asignaciones?: Asignacion[];
 }
-
 
 export default function AthleteDashboard() {
   const router = useRouter();
@@ -35,33 +39,31 @@ export default function AthleteDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  const fetchAtleta = async () => {
-    try {
-      const id = await AsyncStorage.getItem('user_id');
+    const fetchAtleta = async () => {
+      try {
+        const id = await AsyncStorage.getItem('user_id');
+        if (!id) {
+          router.replace('/login');
+          return;
+        }
 
-      if (!id) {
-        // Redirige si no hay sesión
-        router.replace('/login');
-        return;
+        const data = await getAtletaById();
+        console.log('✅ Datos completos del atleta:', JSON.stringify(data, null, 2));
+        setAtleta(data);
+
+        if (data.frecuencia_cardiaca_maxima && data.frecuencia_cardiaca_minima) {
+          const zonas = calcularZonasFrecuencia(data.frecuencia_cardiaca_maxima, data.frecuencia_cardiaca_minima);
+          setZonasFrecuencia(zonas);
+        }
+      } catch (err) {
+        console.error('❌ Error al obtener datos del atleta:', err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await getAtletaById();
-      setAtleta(data);
-
-      if (data.frecuencia_cardiaca_maxima && data.frecuencia_cardiaca_minima) {
-        const zonas = calcularZonasFrecuencia(data.frecuencia_cardiaca_maxima, data.frecuencia_cardiaca_minima);
-        setZonasFrecuencia(zonas);
-      }
-    } catch (err) {
-      console.error('Error al obtener datos del atleta:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchAtleta();
-}, []);
-
+    fetchAtleta();
+  }, []);
 
   const calcularZonasFrecuencia = (max: number, reposo: number) => {
     const rango = max - reposo;
@@ -76,80 +78,85 @@ export default function AthleteDashboard() {
   };
 
   if (loading) {
-  return <ActivityIndicator size="large" color="#f97316" style={{ flex: 1 }} />;
-}
+    return <ActivityIndicator size="large" color="#f97316" style={{ flex: 1 }} />;
+  }
 
-return (
-  <ScrollView contentContainerStyle={styles.container}>
-    <Text style={styles.title}>Panel del Atleta</Text>
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Panel del Atleta</Text>
 
-    {!atleta ? (
-      <Text style={styles.error}>No se encontraron datos del atleta</Text>
-    ) : (
-      <>
-        <View style={styles.card}>
-          <Text style={styles.subtitle}>Información Personal</Text>
-          <Text>Nombre: {atleta.nombre_completo}</Text>
-          <Text>Deporte: {atleta.deporte}</Text>
-          <Text>Altura: {atleta.altura ?? 'N/A'} cm</Text>
-          <Text>Peso: {atleta.peso ?? 'N/A'} kg</Text>
-          <Text>Entrenador: {atleta.nombre_entrenador ?? 'No asignado'}</Text>
-        </View>
-
-        {zonasFrecuencia && (
+      {!atleta ? (
+        <Text style={styles.error}>No se encontraron datos del atleta</Text>
+      ) : (
+        <>
           <View style={styles.card}>
-            <Text style={styles.subtitle}>Zonas de Frecuencia Cardiaca</Text>
-            {Object.entries(zonasFrecuencia).map(([zona, valor], i, arr) => (
-              <Text key={zona}>
-                {zona}: {valor}{i < arr.length - 1 ? ` - ${arr[i + 1][1]}` : ''} bpm
-              </Text>
-            ))}
+            <Text style={styles.subtitle}>Información Personal</Text>
+            <Text>Nombre: {atleta.nombre_completo}</Text>
+            <Text>Deporte: {atleta.deporte}</Text>
+            <Text>Altura: {atleta.altura ?? 'N/A'} cm</Text>
+            <Text>Peso: {atleta.peso ?? 'N/A'} kg</Text>
+            <Text>Entrenador: {atleta.nombre_entrenador ?? 'No asignado'}</Text>
           </View>
-        )}
 
-        <View style={styles.card}>
-          <Text style={styles.subtitle}>Mis Entrenamientos</Text>
-          {atleta.entrenamientos && atleta.entrenamientos.length > 0 ? (
-            atleta.entrenamientos.map((ent, i) => (
-              <View key={i} style={styles.trainingCard}>
-                <Text style={styles.trainingTitle}>{ent.titulo}</Text>
-                <Text>{ent.descripcion}</Text>
-                <Text>Duración: {ent.duracion_estimada ?? '?'} min</Text>
-                <Text>Dificultad: {ent.nivel_dificultad ?? 'No especificada'}</Text>
-              </View>
-            ))
-          ) : (
-            <Text>No hay entrenamientos asignados.</Text>
+          {zonasFrecuencia && (
+            <View style={styles.card}>
+              <Text style={styles.subtitle}>Zonas de Frecuencia Cardiaca</Text>
+              {Object.entries(zonasFrecuencia).map(([zona, valor], i, arr) => (
+                <Text key={zona}>
+                  {zona}: {valor}{i < arr.length - 1 ? ` - ${arr[i + 1][1]}` : ''} bpm
+                </Text>
+              ))}
+            </View>
           )}
-        </View>
-      </>
-    )}
 
-    <TouchableOpacity
-      style={styles.logoutButton}
-      onPress={async () => {
-        try {
-          await AsyncStorage.clear(); // limpia datos
-          router.replace('/login');   // redirige
-        } catch (error) {
-          console.error('Error al cerrar sesión:', error);
-        }
-      }}
-    >
-      <Text style={styles.logoutText}>Cerrar sesión</Text>
-    </TouchableOpacity>
+          <View style={styles.card}>
+            <Text style={styles.subtitle}>Mis Entrenamientos</Text>
+            {atleta.asignaciones && atleta.asignaciones.length > 0 ? (
+              atleta.asignaciones.map((asig, i) => (
+                <View key={asig.id_asignacion} style={styles.trainingCard}>
+                  <Text style={styles.trainingTitle}>{asig.entrenamiento.titulo}</Text>
+                  <Text>{asig.entrenamiento.descripcion}</Text>
+                  <Text>Duración: {asig.entrenamiento.duracion_estimada ?? '?'} min</Text>
+                  <Text>Dificultad: {asig.entrenamiento.nivel_dificultad ?? 'No especificada'}</Text>
+                  <Text>Estado: {asig.estado}</Text>
+                </View>
+              ))
+            ) : (
+              <Text>No hay entrenamientos asignados.</Text>
+            )}
+          </View>
+        </>
+      )}
 
-    <TouchableOpacity
-  style={{ backgroundColor: '#3b82f6', padding: 12, borderRadius: 8, marginTop: 10 }}
-  onPress={() => router.push('/atleta/EditarPerfilAtleta')}
->
-  <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
-    Editar Perfil
-  </Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={async () => {
+          try {
+            await AsyncStorage.clear();
+            router.replace('/login');
+          } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+          }
+        }}
+      >
+        <Text style={styles.logoutText}>Cerrar sesión</Text>
+      </TouchableOpacity>
 
-  </ScrollView>
-);
+      <TouchableOpacity
+        style={{
+          backgroundColor: '#3b82f6',
+          padding: 12,
+          borderRadius: 8,
+          marginTop: 10,
+        }}
+        onPress={() => router.push('/atleta/EditarPerfilAtleta')}
+      >
+        <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
+          Editar Perfil
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -213,5 +220,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-

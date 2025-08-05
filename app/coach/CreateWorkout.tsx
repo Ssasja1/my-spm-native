@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { createWorkout, getCoachById } from '../../api'; // Asegúrate que estén bien importadas
-
+import { router } from 'expo-router'; // ✅ Importación añadida
 
 export default function CrearEntrenamiento() {
   const [titulo, setTitulo] = useState('');
@@ -23,53 +23,56 @@ export default function CrearEntrenamiento() {
 
   const niveles = ['principiante', 'intermedio', 'avanzado'];
 
-const crearEntrenamiento = async () => {
-  if (!titulo || !duracion || !nivel) {
-    Alert.alert('Error', 'Todos los campos obligatorios deben ser completados.');
-    return;
-  }
+  const crearEntrenamiento = async () => {
+    if (!titulo || !duracion || !nivel) {
+      Alert.alert('Error', 'Todos los campos obligatorios deben ser completados.');
+      return;
+    }
 
-  if (!niveles.includes(nivel)) {
-    Alert.alert('Error', 'El nivel de dificultad no es válido.');
-    return;
-  }
+    if (!niveles.includes(nivel)) {
+      Alert.alert('Error', 'El nivel de dificultad no es válido.');
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-try {
-  const id_usuario = await AsyncStorage.getItem('user_id');
-  if (!id_usuario) throw new Error('ID del usuario no encontrado.');
+    try {
+      const id_usuario = await AsyncStorage.getItem('user_id');
+      if (!id_usuario) throw new Error('ID del usuario no encontrado.');
 
-  // ✅ Obtener el perfil del coach y su id_entrenador
-  const coach = await getCoachById(id_usuario);
-  const id_entrenador = coach.id_entrenador;
+      // ✅ Obtener el perfil del coach y su id_entrenador
+      const coach = await getCoachById(id_usuario);
+      const id_entrenador = coach.id_entrenador;
 
-  // ✅ Crear el entrenamiento con el ID correcto
-  const data = await createWorkout({
-    id_entrenador,
-    titulo,
-    descripcion,
-    duracion_estimada: parseInt(duracion),
-    nivel_dificultad: nivel,
-  });
+      // ✅ Crear el entrenamiento con el ID correcto
+      const data = await createWorkout({
+        id_entrenador,
+        titulo,
+        descripcion,
+        duracion_estimada: parseInt(duracion),
+        nivel_dificultad: nivel,
+      });
 
-  Alert.alert('Éxito', 'Entrenamiento creado correctamente. ID: ' + data.id_entrenamiento);
-  setTitulo('');
-  setDescripcion('');
-  setDuracion('');
-  setNivel('');
-} catch (error) {
-  console.error('Error al crear entrenamiento:', error);
+      Alert.alert('Éxito', 'Entrenamiento creado correctamente. ID: ' + data.id_entrenamiento);
+      setTitulo('');
+      setDescripcion('');
+      setDuracion('');
+      setNivel('');
 
-  if (error instanceof Error) {
-    Alert.alert('Error', error.message);
-  } else {
-    Alert.alert('Error', 'Ocurrió un error al crear el entrenamiento.');
-  }
-} finally {
-  setLoading(false);
-}
-}
+      // ✅ Reemplaza la vista actual para forzar recarga de la lista
+      router.replace('/coach/MyWorkouts'); // Ajusta esta ruta si es diferente en tu estructura
+    } catch (error) {
+      console.error('Error al crear entrenamiento:', error);
+
+      if (error instanceof Error) {
+        Alert.alert('Error', error.message);
+      } else {
+        Alert.alert('Error', 'Ocurrió un error al crear el entrenamiento.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

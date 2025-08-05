@@ -57,6 +57,7 @@ function RootLayoutNav() {
         <Stack.Screen name="atleta/EditarPerfilAtleta" options={{ title: 'Editar Perfil' }} />
          <Stack.Screen name="vistascoach/VerDetallesEntrenamiento" options={{ title: 'Ver Detalles Entrenamiento' }}/>
          <Stack.Screen name="vistascoach/AsignarEntrenamiento" options={{ title: 'Asignar Entrenamiento' }} />
+          <Stack.Screen name="vistascoach/EditarEntrenamiento" options={{ title: 'Editar Entrenamiento' }} />
       </Stack>
     </ThemeProvider>
   );

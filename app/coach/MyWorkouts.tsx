@@ -13,7 +13,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { getCoachById, getWorkoutsByCoach } from '../../api';
 
-// ✅ Interfaz definida
 interface Workout {
   id_entrenamiento: number;
   titulo: string;
@@ -81,29 +80,33 @@ export default function WorkoutsTab() {
   };
 
   const renderItem = ({ item }: { item: Workout }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        router.push({
-          pathname: '/vistascoach/VerDetallesEntrenamiento',
-          params: { id: item.id_entrenamiento },
-        })
-      }
-    >
-      <View style={styles.cardLeft}>
-        <MaterialIcons name="fitness-center" size={24} color="black" />
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.title}>{item.titulo}</Text>
-        <Text style={styles.subtitle}>
-          Duración: {item.duracion_estimada ?? 'N/A'} min | Dificultad: {item.nivel_dificultad ?? 'N/A'}
-        </Text>
-      </View>
+  <View style={styles.card}>
+    <View style={styles.cardContentWrapper}>
+      <TouchableOpacity
+        style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+        onPress={() =>
+          router.push({
+            pathname: '/vistascoach/VerDetallesEntrenamiento',
+            params: { id: item.id_entrenamiento },
+          })
+        }
+      >
+        <View style={styles.cardLeft}>
+          <MaterialIcons name="fitness-center" size={24} color="black" />
+        </View>
+        <View style={styles.cardContent}>
+          <Text style={styles.title}>{item.titulo}</Text>
+          <Text style={styles.subtitle}>
+            Duración: {item.duracion_estimada ?? 'N/A'} min | Dificultad: {item.nivel_dificultad ?? 'N/A'}
+          </Text>
+        </View>
+      </TouchableOpacity>
       <TouchableOpacity onPress={() => handleOptions(item)} style={styles.menuIcon}>
         <MaterialIcons name="more-vert" size={24} color="gray" />
       </TouchableOpacity>
-    </TouchableOpacity>
-  );
+    </View>
+  </View>
+);
 
   if (loading) {
     return (
@@ -133,7 +136,6 @@ export default function WorkoutsTab() {
   );
 }
 
-
 const styles = StyleSheet.create({
   loaderContainer: {
     flex: 1,
@@ -161,6 +163,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     elevation: 2,
   },
+  cardContentWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   cardLeft: {
     marginRight: 10,
   },
@@ -177,5 +184,7 @@ const styles = StyleSheet.create({
   },
   menuIcon: {
     paddingLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -1,11 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { registrar } from '../api';
-
-const API_URL = 'http://192.168.68.102:8000'; // ✅ Usa tu IP local aquí
-//const API_URL = 'http://localhost:8000';  aca usas el que estes usando en tu entorno de desarrollo
+import { registrar } from '../api'; // Ajusta esta ruta si tu archivo api está en otra carpeta
 
 type FormData = {
   name: string;
@@ -13,12 +9,14 @@ type FormData = {
   password: string;
   password_confirmation: string;
   tipo: string;
+  // Atleta
   fecha_nacimiento?: string;
   altura?: string;
   peso?: string;
   deporte?: string;
   id_entrenador?: string;
   frecuencia_cardiaca_minima?: string;
+  // Entrenador
   especialidad?: string;
   experiencia?: string;
 };
@@ -34,7 +32,6 @@ export default function Register() {
     tipo: '',
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleRoleChange = (role: string) => {
     setSelectedRole(role);
@@ -48,87 +45,61 @@ export default function Register() {
     }
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      const isoDate = selectedDate.toISOString().split('T')[0];
-      handleChange('fecha_nacimiento', isoDate);
-    }
-  };
+const handleSubmit = async () => {
+  const newErrors: Partial<FormData> = {};
+  if (!formData.name) newErrors.name = 'Nombre es requerido';
+  if (!formData.email) newErrors.email = 'Email es requerido';
+  if (!formData.password) newErrors.password = 'Contraseña es requerida';
+  if (formData.password !== formData.password_confirmation) {
+    newErrors.password_confirmation = 'Las contraseñas no coinciden';
+  }
+  if (!formData.tipo) newErrors.tipo = 'Debes seleccionar un tipo de usuario';
 
-  const handleSubmit = async () => {
-    const newErrors: Partial<FormData> = {};
-    if (!formData.name) newErrors.name = 'Nombre es requerido';
-    if (!formData.email) newErrors.email = 'Email es requerido';
-    if (!formData.password) newErrors.password = 'Contraseña es requerida';
-    if (formData.password !== formData.password_confirmation) {
-      newErrors.password_confirmation = 'Las contraseñas no coinciden';
-    }
-    if (!formData.tipo) newErrors.tipo = 'Debes seleccionar un tipo de usuario';
-
-    if (selectedRole === 'atleta') {
-      if (!formData.fecha_nacimiento) newErrors.fecha_nacimiento = 'Fecha de nacimiento es requerida';
-      if (!formData.altura) newErrors.altura = 'Altura es requerida';
-      if (!formData.peso) newErrors.peso = 'Peso es requerido';
-      if (!formData.deporte) newErrors.deporte = 'Deporte es requerido';
-      if (!formData.frecuencia_cardiaca_minima) newErrors.frecuencia_cardiaca_minima = 'F.C. mínima es requerida';
-    } else if (selectedRole === 'entrenador') {
-      if (!formData.fecha_nacimiento) newErrors.fecha_nacimiento = 'Fecha de nacimiento es requerida';
-      if (!formData.especialidad) newErrors.especialidad = 'Especialidad es requerida';
-      if (!formData.experiencia) newErrors.experiencia = 'Experiencia es requerida';
-    }
+  if (selectedRole === 'atleta') {
+    if (!formData.fecha_nacimiento) newErrors.fecha_nacimiento = 'Fecha de nacimiento es requerida';
+    if (!formData.altura) newErrors.altura = 'Altura es requerida';
+    if (!formData.peso) newErrors.peso = 'Peso es requerido';
+    if (!formData.deporte) newErrors.deporte = 'Deporte es requerido';
+    if (!formData.frecuencia_cardiaca_minima) newErrors.frecuencia_cardiaca_minima = 'F.C. mínima es requerida';
+  } else if (selectedRole === 'entrenador') {
+    if (!formData.especialidad) newErrors.especialidad = 'Especialidad es requerida';
+    if (!formData.experiencia) newErrors.experiencia = 'Experiencia es requerida';
+  }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const payload: any = {
-      email: formData.email,
-      contrasena: formData.password,
-      nombre_completo: formData.name,
-      fecha_nacimiento: formData.fecha_nacimiento,
-    };
-
-    if (selectedRole === 'entrenador') {
-      payload.especialidad = formData.especialidad;
-      payload.experiencia = formData.experiencia;
-    } else if (selectedRole === 'atleta') {
-      payload.altura = parseFloat(formData.altura || '0');
-      payload.peso = parseFloat(formData.peso || '0');
-      payload.deporte = formData.deporte;
-      payload.id_entrenador = formData.id_entrenador ? parseInt(formData.id_entrenador) : undefined;
-      payload.frecuencia_cardiaca_minima = parseInt(formData.frecuencia_cardiaca_minima || '0');
-    }
-
-    try {
-      const data = await registrar(formData);
-      Alert.alert('Registro exitoso', `Bienvenido/a ${data.nombre_completo}`);
-      router.push('/login');
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'No se pudo registrar');
-    }
+const payload: any = {
+    email: formData.email,
+    contrasena: formData.password,
+    nombre_completo: formData.name,
+    fecha_nacimiento: formData.fecha_nacimiento,
   };
 
-  const renderFechaNacimiento = () => (
-    <>
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
-        <Text style={{ color: formData.fecha_nacimiento ? 'black' : '#9ca3af' }}>
-          {formData.fecha_nacimiento || 'Seleccionar fecha de nacimiento'}
-        </Text>
-      </TouchableOpacity>
-      {errors.fecha_nacimiento && <Text style={styles.error}>{errors.fecha_nacimiento}</Text>}
-      {showDatePicker && (
-        <DateTimePicker
-          value={formData.fecha_nacimiento ? new Date(formData.fecha_nacimiento) : new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleDateChange}
-          maximumDate={new Date()}
-        />
-      )}
-    </>
-  );
+  if (selectedRole === 'entrenador') {
+    payload.especialidad = formData.especialidad;
+    payload.experiencia = formData.experiencia;
+  } else if (selectedRole === 'atleta') {
+    payload.altura = parseFloat(formData.altura || '0');
+    payload.peso = parseFloat(formData.peso || '0');
+    payload.deporte = formData.deporte;
+    payload.id_entrenador = formData.id_entrenador ? parseInt(formData.id_entrenador) : undefined;
+    payload.frecuencia_cardiaca_minima = parseInt(formData.frecuencia_cardiaca_minima || '0');
+  }
+
+try {
+  const data = await registrar(formData); // ← aquí va solo el formData, ya que tipo va incluido dentro
+ Alert.alert('Registro exitoso', `Bienvenido/a ${data.nombre_completo}`);
+  router.push('/login');
+} catch (err: any) {
+  Alert.alert('Error', err.message || 'No se pudo registrar');
+}
+  };
+
+  // El resto del JSX se queda igual
+  // ...
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -196,7 +167,14 @@ export default function Register() {
         {selectedRole === 'atleta' && (
           <>
             <Text style={styles.sectionTitle}>Información del Atleta</Text>
-            {renderFechaNacimiento()}
+            
+            <TextInput
+              placeholder="Fecha de nacimiento (YYYY-MM-DD)"
+              style={styles.input}
+              value={formData.fecha_nacimiento}
+              onChangeText={(text) => handleChange('fecha_nacimiento', text)}
+            />
+            {errors.fecha_nacimiento && <Text style={styles.error}>{errors.fecha_nacimiento}</Text>}
 
             <TextInput
               placeholder="Altura (cm)"
@@ -245,7 +223,14 @@ export default function Register() {
         {selectedRole === 'entrenador' && (
           <>
             <Text style={styles.sectionTitle}>Información del Entrenador</Text>
-            {renderFechaNacimiento()}
+            
+            <TextInput
+              placeholder="Fecha de nacimiento (YYYY-MM-DD)"
+              style={styles.input}
+              value={formData.fecha_nacimiento}
+              onChangeText={(text) => handleChange('fecha_nacimiento', text)}
+            />
+            {errors.fecha_nacimiento && <Text style={styles.error}>{errors.fecha_nacimiento}</Text>}
 
             <TextInput
               placeholder="Especialidad"

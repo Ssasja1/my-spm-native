@@ -1,8 +1,8 @@
-// api.ts
+// api.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://localhost:8000'; // Reemplaza con tu IP real si usas un emulador o dispositivo físico
-//const API_URL = 'http://192.168.101.9:8000';
+//const API_URL = 'http://localhost:8000'; // Reemplaza con tu IP real si usas un emulador o dispositivo físico
+const API_URL = 'https://apifastpi-production.up.railway.app'
 
 export async function registrar(formData) {
     const endpoint = `${API_URL}/registro/`;

@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { getCoachDashboard } from '../../api'; // Debes crear esta función en api.ts
-
-//este aun queda, falta darle la funcionalidad de obtener los atletas asignados al coach y mostrarlos en la pantalla
+import { getCoachDashboard } from '../../api';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface AtletaAsignado {
   nombre_completo: string;
@@ -61,39 +60,74 @@ export default function DashboardCoach() {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#2563eb" style={{ flex: 1 }} />;
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#FF6B00" />
+        <Text style={styles.loadingText}>Cargando datos del coach...</Text>
+      </View>
+    );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
-      <Text style={styles.title}>Bienvenido al Panel del Coach</Text>
-      <Text style={styles.description}>
-        En este apartado puedes consultar tu información personal y ver la lista de atletas que tienes asignados.
-      </Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.mainTitle}>PANEL DEL COACH</Text>
+        <Text style={styles.subtitle}>CADA DATO TE ACERCA A LA GRANDEZA</Text>
+        <View style={styles.divider} />
+      </View>
 
       {coach && (
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Información Personal</Text>
-          <Text>Nombre: {coach.nombre_completo}</Text>
-          <Text>Especialidad: {coach.especialidad || 'No especificada'}</Text>
-          <Text>Experiencia: {coach.experiencia || 'No disponible'}</Text>
+          <View style={styles.sectionHeader}>
+            <MaterialIcons name="person" size={24} color="#FF6B00" />
+            <Text style={styles.sectionTitle}>INFORMACIÓN PERSONAL</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Nombre:</Text>
+            <Text style={styles.infoValue}>{coach.nombre_completo}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Especialidad:</Text>
+            <Text style={styles.infoValue}>{coach.especialidad || 'No especificada'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Experiencia:</Text>
+            <Text style={styles.infoValue}>{coach.experiencia || 'No disponible'}</Text>
+          </View>
         </View>
       )}
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Atletas Asignados</Text>
+        <View style={styles.sectionHeader}>
+          <MaterialIcons name="people" size={24} color="#FF6B00" />
+          <Text style={styles.sectionTitle}>ATLETAS ASIGNADOS</Text>
+        </View>
+        
         {coach?.atletas_asignados?.length ? (
           coach.atletas_asignados.map((a, i) => (
             <View key={i} style={styles.athleteCard}>
               <Text style={styles.athleteName}>{a.nombre_completo}</Text>
-              <Text>Deporte: {a.deporte}</Text>
-              <Text>Edad: {calcularEdad(a.fecha_nacimiento)} años</Text>
-              <Text>F.C. Máx: {a.frecuencia_cardiaca_maxima} bpm</Text>
-              <Text>F.C. Mín: {a.frecuencia_cardiaca_minima} bpm</Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Deporte:</Text>
+                <Text style={styles.infoValue}>{a.deporte}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Edad:</Text>
+                <Text style={styles.infoValue}>{calcularEdad(a.fecha_nacimiento)} años</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>F.C. Máx:</Text>
+                <Text style={styles.infoValue}>{a.frecuencia_cardiaca_maxima} bpm</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>F.C. Mín:</Text>
+                <Text style={styles.infoValue}>{a.frecuencia_cardiaca_minima} bpm</Text>
+              </View>
+              {i < coach.atletas_asignados.length - 1 && <View style={styles.separator} />}
             </View>
           ))
         ) : (
-          <Text>No hay atletas asignados.</Text>
+          <Text style={styles.emptyText}>No hay atletas asignados</Text>
         )}
       </View>
 
@@ -104,7 +138,7 @@ export default function DashboardCoach() {
           router.replace('/login');
         }}
       >
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
+        <Text style={styles.logoutText}>CERRAR SESIÓN</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -112,53 +146,135 @@ export default function DashboardCoach() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: '#f3f4f6',
-    flex: 1,
+    flexGrow: 1,
+    backgroundColor: '#0A0A0A',
   },
-  title: {
+  header: {
+    paddingTop: 50,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
+  },
+  mainTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 10,
+    fontWeight: '900',
+    color: '#FF6B00',
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
   },
-  description: {
-    fontSize: 16,
-    color: '#374151',
+  subtitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#666666',
+    textAlign: 'center',
+    marginTop: 8,
+    letterSpacing: 2,
+    fontFamily: 'monospace',
+  },
+  divider: {
+    width: 60,
+    height: 2,
+    backgroundColor: '#FF6B00',
+    marginVertical: 12,
+  },
+  card: {
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 16,
+    margin: 16,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#FF6B00',
+    marginLeft: 8,
+    letterSpacing: 1.5,
+    fontFamily: 'monospace',
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 2,
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: '#a3a3a3',
+    fontFamily: 'monospace',
+  },
+  infoValue: {
+    fontSize: 14,
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
   },
   athleteCard: {
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: '#e5e7eb',
   },
   athleteName: {
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 8,
+    fontFamily: 'monospace',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#333333',
+    marginVertical: 12,
+  },
+  emptyText: {
+    color: '#a3a3a3',
+    textAlign: 'center',
+    fontFamily: 'monospace',
   },
   logoutButton: {
-    backgroundColor: '#dc2626',
-    paddingVertical: 12,
-    borderRadius: 10,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    margin: 16,
     marginTop: 10,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 8,
   },
   logoutText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
+    color: '#FF6B00',
     fontSize: 16,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0A0A0A',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#f1f1f1',
+    fontFamily: 'monospace',
   },
 });

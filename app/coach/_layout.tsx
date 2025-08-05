@@ -35,6 +35,27 @@ export default function CoachTabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="users" color={color} />,
         }}
       />
+<Tabs.Screen
+  name="MyAthletes"
+  options={{
+    title: 'Mis Atletas',
+    tabBarIcon: ({ color }) => <TabBarIcon name="group" color={color} />,
+  }}
+/>
+<Tabs.Screen
+  name="MyWorkouts"
+  options={{
+    title: 'Mis Entrenamientos',
+    tabBarIcon: ({ color }) => <TabBarIcon name="list-alt" color={color} />,
+  }}
+/>
+<Tabs.Screen
+  name="CreateWorkout"
+  options={{
+    title: 'Crear Entrenamiento',
+    tabBarIcon: ({ color }) => <TabBarIcon name="plus-square" color={color} />,
+  }}
+/>
     </Tabs>
   );
 }

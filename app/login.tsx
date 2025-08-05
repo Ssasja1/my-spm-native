@@ -7,14 +7,13 @@ import {
   StyleSheet,
   ScrollView,
   Switch,
+  StatusBar,
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login } from '../api';
 
-
-//const API_URL = 'http://192.168.101.9:8000'; // ✅ Usa tu IP local aquí
-const API_URL = 'http://localhost:8000'; 
+const API_URL = 'https://apifastpi-production.up.railway.app';
 
 type LoginFormData = {
   email: string;
@@ -27,7 +26,7 @@ type LoginProps = {
   canResetPassword?: boolean;
 };
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status }: LoginProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
@@ -44,70 +43,75 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     }
   };
 
- const handleSubmit = async () => {
-  const newErrors: Partial<LoginFormData> = {};
-  if (!formData.email) newErrors.email = 'Email es requerido';
-  if (!formData.password) newErrors.password = 'Contraseña es requerida';
+  const handleSubmit = async () => {
+    const newErrors: Partial<LoginFormData> = {};
+    if (!formData.email) newErrors.email = 'Email es requerido';
+    if (!formData.password) newErrors.password = 'Contraseña es requerida';
 
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
-
-  setProcessing(true);
-
-  try {
-    const user = await login(formData.email, formData.password);
-    console.log('Login exitoso:', user);
-
-    const userId = user.usuario?.id_usuario || user.id;
-    const userType = user.usuario?.tipo || user.tipo;
-
-    await AsyncStorage.setItem('user_id', String(userId));
-
-    // Redirige según el tipo de usuario
-    if (userType === 'atleta') {
-      const res = await fetch(`${API_URL}/atletas/usuario/${userId}`);
-      if (!res.ok) {
-        const raw = await res.text();
-        console.error('Respuesta no OK atleta:', raw);
-        throw new Error('No se pudo obtener el perfil del atleta');
-      }
-
-      const atleta = await res.json();
-      await AsyncStorage.setItem('atleta_id', String(atleta.id_atleta));
-      router.replace('/(tabs)/DashboardAtleta');
-    } else if (userType === 'entrenador') {
-      router.replace('/coach/DashboardCoach');
-    } else {
-      throw new Error('Tipo de usuario no reconocido');
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
 
-  } catch (error: any) {
-    console.error('Error al iniciar sesión:', error);
-    setErrors({ password: error.message });
-  } finally {
-    setProcessing(false);
-  }
-};
+    setProcessing(true);
+
+    try {
+      const user = await login(formData.email, formData.password);
+      console.log('Login exitoso:', user);
+
+      const userId = user.usuario?.id_usuario || user.id;
+      const userType = user.usuario?.tipo || user.tipo;
+
+      await AsyncStorage.setItem('user_id', String(userId));
+
+      if (userType === 'atleta') {
+        const res = await fetch(`${API_URL}/atletas/usuario/${userId}`);
+        if (!res.ok) {
+          const raw = await res.text();
+          console.error('Respuesta no OK atleta:', raw);
+          throw new Error('No se pudo obtener el perfil del atleta');
+        }
+
+        const atleta = await res.json();
+        await AsyncStorage.setItem('atleta_id', String(atleta.id_atleta));
+        router.replace('/(tabs)/DashboardAtleta');
+      } else if (userType === 'entrenador') {
+        router.replace('/coach/DashboardCoach');
+      } else {
+        throw new Error('Tipo de usuario no reconocido');
+      }
+
+    } catch (error: any) {
+      console.error('Error al iniciar sesión:', error);
+      setErrors({ password: error.message });
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.mainTitle}>SPM</Text>
+          <Text style={styles.subtitle}>CADA DATO TE ACERCA A LA GRANDEZA</Text>
+          <View style={styles.divider} />
+        </View>
+
         {status && (
           <View style={styles.statusContainer}>
             <Text style={styles.statusText}>{status}</Text>
           </View>
         )}
 
-        <Text style={styles.title}>SPM</Text>
-
         <View style={styles.formContainer}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Correo electrónico</Text>
+            <Text style={styles.label}>CORREO ELECTRÓNICO</Text>
             <TextInput
               style={styles.input}
               placeholder="Ingresa tu correo electrónico"
+              placeholderTextColor="#747474ff"
               keyboardType="email-address"
               autoCapitalize="none"
               value={formData.email}
@@ -117,10 +121,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contraseña</Text>
+            <Text style={styles.label}>CONTRASEÑA</Text>
             <TextInput
               style={styles.input}
               placeholder="Ingresa tu contraseña"
+              placeholderTextColor="#747474ff"
               secureTextEntry
               value={formData.password}
               onChangeText={(text) => handleChange('password', text)}
@@ -145,38 +150,65 @@ export default function Login({ status, canResetPassword }: LoginProps) {
               disabled={processing}
             >
               <Text style={styles.buttonText}>
-                {processing ? 'Procesando...' : 'Iniciar sesión'}
+                {processing ? 'Procesando...' : 'INICIAR SESIÓN'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Botón para registrar una nueva cuenta */}
           <TouchableOpacity
             style={styles.registerButton}
-            onPress={() => router.push('/register')} // Asegúrate que esta ruta existe
+            onPress={() => router.push('/register')}
           >
             <Text style={styles.registerText}>¿No tienes cuenta? Regístrate</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: '#0A0A0A',
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 16,
+  header: {
+    paddingTop: 50,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
+  },
+  mainTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FF6B00',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
+  },
+  subtitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#666666',
+    marginTop: 8,
+    letterSpacing: 2,
+    fontFamily: 'monospace',
+  },
+  divider: {
+    width: 60,
+    height: 2,
+    backgroundColor: '#FF6B00',
+    marginVertical: 12,
+  },
+  formContainer: {
+    backgroundColor: '#111111',
+    margin: 20,
+    borderRadius: 8,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#222222',
   },
   statusContainer: {
     marginBottom: 16,
@@ -187,65 +219,75 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#16a34a',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 32,
-    textAlign: 'center',
-    color: '#f97316',
-  },
-  formContainer: {
-    gap: 20,
-  },
   inputGroup: {
-    gap: 4,
+    marginTop: 10,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#CCCCCC',
+    marginBottom: 6,
+    letterSpacing: 1,
+    fontFamily: 'monospace',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#fb923c',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: '#1A1A1A',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderTopColor: '#333333',
+    borderLeftColor: '#333333',
+    borderRightColor: '#333333',
+    borderBottomWidth: 2,
+    borderBottomColor: '#FF6B00',
+    borderRadius: 4,
+    padding: 14,
+    color: '#ffffff',
     fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'monospace',
   },
   rememberContainer: {
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   rememberText: {
-    fontSize: 14,
-    color: '#4b5563',
+    fontSize: 13,
+    color: '#CCCCCC',
+    fontWeight: '800',
+    letterSpacing: 1,
+    fontFamily: 'monospace',
   },
   actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  forgotPassword: {
-    color: '#f97316',
-    fontSize: 14,
-    textDecorationLine: 'underline',
+    marginTop: 20,
   },
   button: {
-    backgroundColor: '#f97316',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginTop: 10,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 8,
   },
   buttonDisabled: {
     backgroundColor: '#fb923c',
     opacity: 0.7,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: '#FF6B00',
     fontSize: 16,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
   },
   registerButton: {
     marginTop: 20,

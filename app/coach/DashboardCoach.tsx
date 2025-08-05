@@ -41,7 +41,7 @@ export default function DashboardCoach() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+        <ActivityIndicator size="large" color="#FF6B00" />
       </View>
     );
   }
@@ -49,12 +49,13 @@ export default function DashboardCoach() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Panel del Entrenador</Text>
+        <Text style={styles.mainTitle}>PANEL DEL ENTRENADOR</Text>
         <Text style={styles.subtitle}>Gestión de tu perfil profesional</Text>
+        <View style={styles.divider} />
       </View>
 
       <View style={styles.content}>
-      <Text style={[styles.description, { marginBottom: 50 }]}>
+        <Text style={[styles.description, { marginBottom: 50 }]}>
           Aquí encontrarás toda tu información personal como entrenador. 
           Este panel está diseñado para ayudarte a gestionar tus datos, 
           mantener un control de tu especialidad, tu experiencia profesional 
@@ -62,7 +63,7 @@ export default function DashboardCoach() {
           entrenamientos creados y estadísticas relevantes para tu desempeño.
         </Text>
 
-        <Text style={styles.title}>Informacion Personal</Text>
+        <Text style={styles.title}>Información Personal</Text>
 
         {coach ? (
           <View style={styles.card}>
@@ -105,7 +106,7 @@ export default function DashboardCoach() {
             router.replace('/login');
           }}
         >
-          <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+          <Text style={styles.logoutButtonText}>CERRAR SESIÓN</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -117,30 +118,50 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#0A0A0A',
   },
   container: {
     flexGrow: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#0A0A0A',
   },
   header: {
-    padding: 24,
-    paddingBottom: 16,
-    backgroundColor: '#ffffff',
+    paddingTop: 50,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#1A1A1A',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1e293b',
+    color: '#f1f1f1ff',
     textAlign: 'center',
     marginBottom: 4,
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#64748b',
+  mainTitle: { 
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FF6B00', 
     textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
+  },
+  divider: {
+    width: 60,
+    height: 2,
+    backgroundColor: '#FF6B00',
+    marginVertical: 12,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#b9b9b9ff',
+    marginBottom: 10,
+    marginTop: 8,
+    letterSpacing: 2,
+    fontFamily: 'monospace',
   },
   content: {
     padding: 20,
@@ -148,19 +169,19 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#475569',
+    color: '#a3a3a3ff',
     marginBottom: 24,
     textAlign: 'justify',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#252525ff',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 3,
   },
   infoSection: {
@@ -169,17 +190,12 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b',
+    color: '#a3a3a3ff',
     marginBottom: 4,
   },
   infoText: {
     fontSize: 16,
-    color: '#1e293b',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f1f5f9',
-    marginVertical: 8,
+    color: '#f1f1f1ff',
   },
   errorContainer: {
     backgroundColor: '#fee2e2',
@@ -193,21 +209,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   logoutButton: {
-    backgroundColor: '#ef4444',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginTop: 25,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 8,
   },
   logoutButtonText: {
-    color: '#ffffff',
-    fontWeight: '600',
+    color: '#FF6B00',
     fontSize: 16,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
   },
 });

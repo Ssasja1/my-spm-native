@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { registrar } from '../api';
-
-const API_URL = 'http://192.168.68.102:8000'; // ✅ Usa tu IP local aquí
-//const API_URL = 'http://localhost:8000';  aca usas el que estes usando en tu entorno de desarrollo
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 type FormData = {
   name: string;
@@ -13,12 +10,14 @@ type FormData = {
   password: string;
   password_confirmation: string;
   tipo: string;
+  // Atleta
   fecha_nacimiento?: string;
   altura?: string;
   peso?: string;
   deporte?: string;
   id_entrenador?: string;
   frecuencia_cardiaca_minima?: string;
+  // Entrenador
   especialidad?: string;
   experiencia?: string;
 };
@@ -34,6 +33,7 @@ export default function Register() {
     tipo: '',
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleRoleChange = (role: string) => {
@@ -48,12 +48,17 @@ export default function Register() {
     }
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
-      const isoDate = selectedDate.toISOString().split('T')[0];
-      handleChange('fecha_nacimiento', isoDate);
+      setDate(selectedDate);
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      handleChange('fecha_nacimiento', formattedDate);
     }
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
   };
 
   const handleSubmit = async () => {
@@ -73,7 +78,6 @@ export default function Register() {
       if (!formData.deporte) newErrors.deporte = 'Deporte es requerido';
       if (!formData.frecuencia_cardiaca_minima) newErrors.frecuencia_cardiaca_minima = 'F.C. mínima es requerida';
     } else if (selectedRole === 'entrenador') {
-      if (!formData.fecha_nacimiento) newErrors.fecha_nacimiento = 'Fecha de nacimiento es requerida';
       if (!formData.especialidad) newErrors.especialidad = 'Especialidad es requerida';
       if (!formData.experiencia) newErrors.experiencia = 'Experiencia es requerida';
     }
@@ -110,168 +114,256 @@ export default function Register() {
     }
   };
 
-  const renderFechaNacimiento = () => (
-    <>
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
-        <Text style={{ color: formData.fecha_nacimiento ? 'black' : '#9ca3af' }}>
-          {formData.fecha_nacimiento || 'Seleccionar fecha de nacimiento'}
-        </Text>
-      </TouchableOpacity>
-      {errors.fecha_nacimiento && <Text style={styles.error}>{errors.fecha_nacimiento}</Text>}
-      {showDatePicker && (
-        <DateTimePicker
-          value={formData.fecha_nacimiento ? new Date(formData.fecha_nacimiento) : new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleDateChange}
-          maximumDate={new Date()}
-        />
-      )}
-    </>
-  );
+  const fieldLabels = {
+    name: 'NOMBRE COMPLETO',
+    email: 'CORREO ELECTRÓNICO',
+    password: 'CONTRASEÑA',
+    password_confirmation: 'CONFIRMAR CONTRASEÑA',
+    fecha_nacimiento: 'FECHA DE NACIMIENTO',
+    altura: 'ALTURA (cm)',
+    peso: 'PESO (kg)',
+    deporte: 'DEPORTE',
+    frecuencia_cardiaca_minima: 'FRECUENCIA CARDÍACA MÍNIMA (bpm)',
+    id_entrenador: 'ID ENTRENADOR (OPCIONAL)',
+    especialidad: 'ESPECIALIDAD',
+    experiencia: 'EXPERIENCIA (años)'
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Registro de usuario</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.mainTitle}>FORJA TU CUENTA</Text>
+        <Text style={styles.subtitle}>CADA DATO TE ACERCA A LA GRANDEZA</Text>
+        <View style={styles.divider} />
+      </View>
 
-        <TextInput
-          placeholder="Nombre"
-          style={styles.input}
-          value={formData.name}
-          onChangeText={(text) => handleChange('name', text)}
-        />
-        {errors.name && <Text style={styles.error}>{errors.name}</Text>}
+      <View style={styles.formContainer}>
+        {/* Campos comunes */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>{fieldLabels.name}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu nombre completo"
+            placeholderTextColor="#747474ff"
+            value={formData.name}
+            onChangeText={(text) => handleChange('name', text)}
+          />
+          {errors.name && <Text style={styles.error}>{errors.name}</Text>}
+        </View>
 
-        <TextInput
-          placeholder="Correo electrónico"
-          keyboardType="email-address"
-          style={styles.input}
-          value={formData.email}
-          onChangeText={(text) => handleChange('email', text)}
-        />
-        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>{fieldLabels.email}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu correo electrónico"
+            placeholderTextColor="#747474ff"
+            keyboardType="email-address"
+            value={formData.email}
+            onChangeText={(text) => handleChange('email', text)}
+          />
+          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+        </View>
 
-        <TextInput
-          placeholder="Contraseña"
-          secureTextEntry
-          style={styles.input}
-          value={formData.password}
-          onChangeText={(text) => handleChange('password', text)}
-        />
-        {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>{fieldLabels.password}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu contraseña"
+            placeholderTextColor="#747474ff"
+            secureTextEntry
+            value={formData.password}
+            onChangeText={(text) => handleChange('password', text)}
+          />
+          {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+        </View>
 
-        <TextInput
-          placeholder="Confirmar contraseña"
-          secureTextEntry
-          style={styles.input}
-          value={formData.password_confirmation}
-          onChangeText={(text) => handleChange('password_confirmation', text)}
-        />
-        {errors.password_confirmation && (
-          <Text style={styles.error}>{errors.password_confirmation}</Text>
-        )}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>{fieldLabels.password_confirmation}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirma tu contraseña"
+            placeholderTextColor="#747474ff"
+            secureTextEntry
+            value={formData.password_confirmation}
+            onChangeText={(text) => handleChange('password_confirmation', text)}
+          />
+          {errors.password_confirmation && (
+            <Text style={styles.error}>{errors.password_confirmation}</Text>
+          )}
+        </View>
 
-        <View style={styles.selectContainer}>
-          <Text style={styles.label}>Tipo de usuario:</Text>
+        {/* Selección de rol */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>TIPO DE USUARIO</Text>
           <View style={styles.radioGroup}>
             <TouchableOpacity
               style={styles.radioButton}
               onPress={() => handleRoleChange('atleta')}
             >
               <View style={selectedRole === 'atleta' ? styles.radioSelected : styles.radio} />
-              <Text>Atleta</Text>
+              <Text style={styles.radioText}>ATLETA</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.radioButton}
               onPress={() => handleRoleChange('entrenador')}
             >
               <View style={selectedRole === 'entrenador' ? styles.radioSelected : styles.radio} />
-              <Text>Entrenador</Text>
+              <Text style={styles.radioText}>ENTRENADOR</Text>
             </TouchableOpacity>
           </View>
           {errors.tipo && <Text style={styles.error}>{errors.tipo}</Text>}
         </View>
 
+        {/* Campos específicos de atleta */}
         {selectedRole === 'atleta' && (
           <>
-            <Text style={styles.sectionTitle}>Información del Atleta</Text>
-            {renderFechaNacimiento()}
+            <Text style={styles.sectionTitle}>INFORMACIÓN DEL ATLETA</Text>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.fecha_nacimiento}</Text>
+              <TouchableOpacity onPress={showDatepicker}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Selecciona tu fecha de nacimiento"
+                  placeholderTextColor="#747474ff"
+                  value={formData.fecha_nacimiento}
+                  editable={false}
+                  onPressIn={showDatepicker}
+                />
+              </TouchableOpacity>
+              {errors.fecha_nacimiento && <Text style={styles.error}>{errors.fecha_nacimiento}</Text>}
+            </View>
 
-            <TextInput
-              placeholder="Altura (cm)"
-              keyboardType="numeric"
-              style={styles.input}
-              value={formData.altura}
-              onChangeText={(text) => handleChange('altura', text)}
-            />
-            {errors.altura && <Text style={styles.error}>{errors.altura}</Text>}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.altura}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: 175"
+                placeholderTextColor="#747474ff"
+                keyboardType="numeric"
+                value={formData.altura}
+                onChangeText={(text) => handleChange('altura', text)}
+              />
+              {errors.altura && <Text style={styles.error}>{errors.altura}</Text>}
+            </View>
 
-            <TextInput
-              placeholder="Peso (kg)"
-              keyboardType="numeric"
-              style={styles.input}
-              value={formData.peso}
-              onChangeText={(text) => handleChange('peso', text)}
-            />
-            {errors.peso && <Text style={styles.error}>{errors.peso}</Text>}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.peso}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: 70.5"
+                placeholderTextColor="#747474ff"
+                keyboardType="numeric"
+                value={formData.peso}
+                onChangeText={(text) => handleChange('peso', text)}
+              />
+              {errors.peso && <Text style={styles.error}>{errors.peso}</Text>}
+            </View>
 
-            <TextInput
-              placeholder="Deporte"
-              style={styles.input}
-              value={formData.deporte}
-              onChangeText={(text) => handleChange('deporte', text)}
-            />
-            {errors.deporte && <Text style={styles.error}>{errors.deporte}</Text>}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.deporte}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: Fútbol, Natación..."
+                placeholderTextColor="#747474ff"
+                value={formData.deporte}
+                onChangeText={(text) => handleChange('deporte', text)}
+              />
+              {errors.deporte && <Text style={styles.error}>{errors.deporte}</Text>}
+            </View>
 
-            <TextInput
-              placeholder="Frecuencia cardíaca mínima"
-              keyboardType="numeric"
-              style={styles.input}
-              value={formData.frecuencia_cardiaca_minima}
-              onChangeText={(text) => handleChange('frecuencia_cardiaca_minima', text)}
-            />
-            {errors.frecuencia_cardiaca_minima && <Text style={styles.error}>{errors.frecuencia_cardiaca_minima}</Text>}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.frecuencia_cardiaca_minima}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: 60"
+                placeholderTextColor="#747474ff"
+                keyboardType="numeric"
+                value={formData.frecuencia_cardiaca_minima}
+                onChangeText={(text) => handleChange('frecuencia_cardiaca_minima', text)}
+              />
+              {errors.frecuencia_cardiaca_minima && <Text style={styles.error}>{errors.frecuencia_cardiaca_minima}</Text>}
+            </View>
 
-            <TextInput
-              placeholder="ID Entrenador (opcional)"
-              style={styles.input}
-              value={formData.id_entrenador}
-              onChangeText={(text) => handleChange('id_entrenador', text)}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.id_entrenador}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Opcional"
+                placeholderTextColor="#747474ff"
+                keyboardType="numeric"
+                value={formData.id_entrenador}
+                onChangeText={(text) => handleChange('id_entrenador', text)}
+              />
+            </View>
           </>
         )}
 
+        {/* Campos específicos de entrenador */}
         {selectedRole === 'entrenador' && (
           <>
-            <Text style={styles.sectionTitle}>Información del Entrenador</Text>
-            {renderFechaNacimiento()}
+            <Text style={styles.sectionTitle}>INFORMACIÓN DEL ENTRENADOR</Text>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.fecha_nacimiento}</Text>
+              <TouchableOpacity onPress={showDatepicker}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Selecciona tu fecha de nacimiento"
+                  placeholderTextColor="#747474ff"
+                  value={formData.fecha_nacimiento}
+                  editable={false}
+                  onPressIn={showDatepicker}
+                />
+              </TouchableOpacity>
+              {errors.fecha_nacimiento && <Text style={styles.error}>{errors.fecha_nacimiento}</Text>}
+            </View>
 
-            <TextInput
-              placeholder="Especialidad"
-              style={styles.input}
-              value={formData.especialidad}
-              onChangeText={(text) => handleChange('especialidad', text)}
-            />
-            {errors.especialidad && <Text style={styles.error}>{errors.especialidad}</Text>}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.especialidad}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: Fuerza, Resistencia..."
+                placeholderTextColor="#747474ff"
+                value={formData.especialidad}
+                onChangeText={(text) => handleChange('especialidad', text)}
+              />
+              {errors.especialidad && <Text style={styles.error}>{errors.especialidad}</Text>}
+            </View>
 
-            <TextInput
-              placeholder="Experiencia (años)"
-              keyboardType="numeric"
-              style={styles.input}
-              value={formData.experiencia}
-              onChangeText={(text) => handleChange('experiencia', text)}
-            />
-            {errors.experiencia && <Text style={styles.error}>{errors.experiencia}</Text>}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{fieldLabels.experiencia}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Años de experiencia"
+                placeholderTextColor="#747474ff"
+                keyboardType="numeric"
+                value={formData.experiencia}
+                onChangeText={(text) => handleChange('experiencia', text)}
+              />
+              {errors.experiencia && <Text style={styles.error}>{errors.experiencia}</Text>}
+            </View>
           </>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Registrarse</Text>
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onChangeDate}
+            maximumDate={new Date()}
+            textColor="#FF6B00"
+            accentColor="#FF6B00"
+          />
+        )}
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.8}>
+          <Text style={styles.submitButtonText}>REGISTRARSE</Text>
         </TouchableOpacity>
 
         <Link href="/login" style={styles.link}>
-          ¿Ya estás registrado? Inicia sesión
+          <Text style={styles.linkText}>¿YA TIENES CUENTA? INICIA SESIÓN</Text>
         </Link>
       </View>
     </ScrollView>
@@ -280,93 +372,153 @@ export default function Register() {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
+    flex: 1,
+    backgroundColor: '#0A0A0A',
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+  header: {
+    paddingTop: 50,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
   },
-  title: {
+  mainTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontWeight: '900',
+    color: '#FF6B00',
     textAlign: 'center',
-    color: '#f97316',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 10,
-    color: '#f97316',
+  subtitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#666666',
+    textAlign: 'center',
+    marginTop: 8,
+    letterSpacing: 2,
+    fontFamily: 'monospace',
+  },
+  divider: {
+    width: 60,
+    height: 2,
+    backgroundColor: '#FF6B00',
+    marginVertical: 12,
+  },
+  formContainer: {
+    backgroundColor: '#111111',
+    margin: 20,
+    borderRadius: 8,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#222222',
+  },
+  inputContainer: {
+    marginBottom: 18,
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#CCCCCC',
+    marginBottom: 6,
+    letterSpacing: 1,
+    fontFamily: 'monospace',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#fb923c',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-  },
-  selectContainer: {
-    marginBottom: 15,
-  },
-  label: {
-    marginBottom: 8,
-    fontWeight: '500',
+    backgroundColor: '#1A1A1A',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderTopColor: '#333333',
+    borderLeftColor: '#333333',
+    borderRightColor: '#333333',
+    borderBottomWidth: 2,
+    borderBottomColor: '#FF6B00',
+    borderRadius: 4,
+    padding: 14,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'monospace',
   },
   radioGroup: {
     flexDirection: 'row',
-    gap: 20,
-    marginTop: 8,
+    justifyContent: 'space-around',
+    marginTop: 10,
   },
   radioButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   radio: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    marginRight: 8,
   },
   radioSelected: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#f97316',
+    backgroundColor: '#FF6B00',
+    marginRight: 8,
   },
-  button: {
-    backgroundColor: '#f97316',
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  buttonText: {
-    color: 'white',
+  radioText: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  sectionTitle: {
     fontSize: 16,
+    fontWeight: '900',
+    color: '#FF6B00',
+    marginVertical: 15,
+    letterSpacing: 2,
+    fontFamily: 'monospace',
+    textAlign: 'center',
+  },
+  submitButton: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginTop: 25,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  submitButtonText: {
+    color: '#FF6B00',
+    fontSize: 16,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
   },
   link: {
-    color: '#f97316',
+    marginTop: 20,
+  },
+  linkText: {
+    color: '#FF6B00',
+    fontSize: 12,
+    fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 15,
+    letterSpacing: 1,
     textDecorationLine: 'underline',
+    fontFamily: 'monospace',
   },
   error: {
-    color: 'red',
+    color: '#FF3333',
     fontSize: 12,
-    marginBottom: 10,
-    marginTop: -5,
+    marginTop: 5,
+    fontFamily: 'monospace',
   },
 });

@@ -11,7 +11,6 @@ import { useLocalSearchParams } from 'expo-router';
 import { getWorkoutById } from '../../api';
 import { MaterialIcons } from '@expo/vector-icons';
 
-// ✅ Tipo explícito para Workout
 interface Workout {
   id_entrenamiento: number;
   titulo: string;
@@ -22,7 +21,7 @@ interface Workout {
 
 export default function VerDetallesEntrenamiento() {
   const { id } = useLocalSearchParams();
-  const [workout, setWorkout] = useState<Workout | null>(null); // ✅ tipo correcto
+  const [workout, setWorkout] = useState<Workout | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export default function VerDetallesEntrenamiento() {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#FF6B00" />
         <Text style={styles.loadingText}>Cargando entrenamiento...</Text>
       </View>
     );
@@ -64,9 +63,15 @@ export default function VerDetallesEntrenamiento() {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.header}>
+        <Text style={styles.mainTitle}>ENTRENAMIENTO SPM</Text>
+        <Text style={styles.subtitle}>CADA DATO TE ACERCA A LA GRANDEZA</Text>
+        <View style={styles.divider} />
+      </View>
+      
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <MaterialIcons name="fitness-center" size={64} color="#4CAF50" />
+          <MaterialIcons name="fitness-center" size={64} color="#FF6B00" />
         </View>
         <Text style={styles.title}>{workout.titulo}</Text>
         <View style={styles.separator} />
@@ -87,16 +92,48 @@ export default function VerDetallesEntrenamiento() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0A0A0A',
+  },
+  header: {
+    paddingTop: 50,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
+  },
+  mainTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FF6B00',
+    textAlign: 'center',
+    letterSpacing: 3,
+    fontFamily: 'monospace',
+  },
+  subtitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#666666',
+    textAlign: 'center',
+    marginTop: 8,
+    letterSpacing: 2,
+    fontFamily: 'monospace',
+  },
+  divider: {
+    width: 60,
+    height: 2,
+    backgroundColor: '#FF6B00',
+    marginVertical: 12,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
+    backgroundColor: '#252525ff',
+    borderRadius: 12,
     padding: 20,
+    margin: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -105,45 +142,52 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#333',
+    color: '#f1f1f1',
     marginBottom: 10,
+    fontFamily: 'monospace',
   },
   separator: {
     height: 1,
-    backgroundColor: '#ccc',
+    backgroundColor: '#333333',
     marginVertical: 10,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#555',
+    color: '#FF6B00',
     marginTop: 10,
+    fontFamily: 'monospace',
   },
   detail: {
     fontSize: 16,
-    color: '#333',
+    color: '#c3c3c3',
     marginTop: 4,
+    fontFamily: 'monospace',
   },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0A0A0A',
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#555',
+    color: '#f1f1f1',
+    fontFamily: 'monospace',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0A0A0A',
   },
   errorText: {
     fontSize: 16,
-    color: 'red',
+    color: '#FF6B00',
+    fontFamily: 'monospace',
   },
 });

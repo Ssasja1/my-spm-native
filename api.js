@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //const API_URL = 'http://localhost:8000'; // Reemplaza con tu IP real si usas un emulador o dispositivo físico
-const API_URL = 'http://192.168.68.104:8000';
+const API_URL = 'https://apifastpi-production.up.railway.app'
 
 export async function registrar(formData) {
     const endpoint = `${API_URL}/registro/`;
@@ -63,7 +63,7 @@ export async function login(email, password) {
 }
 
 export const getAtletaById = async () => {
-  const id = await AsyncStorage.getItem('atleta_id');
+  const id = await AsyncStorage.getItem('atleta_id'); // <-- solo la clave
 
   if (!id) {
     throw new Error('ID de atleta no encontrado');
@@ -79,6 +79,18 @@ export const getAtletaById = async () => {
 
   const data = await response.json();
   return data;
+};
+
+export const getCoachDashboard = async (id_usuario) => {
+  const response = await fetch(`${API_URL}/coaches/${id_usuario}`);
+
+  if (!response.ok) {
+    const raw = await response.text();
+    console.error('Error al obtener dashboard del coach:', raw);
+    throw new Error('No se pudo obtener el dashboard del coach');
+  }
+
+  return await response.json();
 };
 
 export const getCoachById = async (id_usuario) => {
@@ -112,18 +124,15 @@ export const createWorkout = async (entrenamiento) => {
   return await response.json();
 };
 
-export const getWorkoutsByCoach = async (id_entrenador) => {
-  const response = await fetch(`${API_URL}/coaches/entrenamientos/coach/${id_entrenador}`);
-
-  if (!response.ok) {
-    const raw = await response.text();
-    console.error('Respuesta no OK:', raw);
-    throw new Error('No se pudo obtener los entrenamientos');
+export async function getWorkoutsByCoach(id_entrenador) {
+  const res = await fetch(`${API_URL}/coaches/entrenamientos/coach/${id_entrenador}`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('Respuesta del backend:', errorText);
+    throw new Error('No se pudieron obtener los entrenamientos');
   }
-
-  const data = await response.json();
-  return data;
-};
+  return await res.json();
+}
 
 export const getWorkoutById = async (id_entrenamiento) => {
   const response = await fetch(`${API_URL}/coaches/entrenamientos/${id_entrenamiento}`);
@@ -154,4 +163,17 @@ export const updateWorkout = async (id_entrenamiento, updatedData) => {
 
   return await response.json();
 };
-
+export async function asignarEntrenamientoAAtletas(id_entrenamiento, atletas_ids) {
+  const res = await fetch(`${API_URL}/entrenamientos/${id_entrenamiento}/asignar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ atletas_ids }),
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('Error al asignar entrenamiento:', errorText);
+    throw new Error('No se pudo asignar el entrenamiento');
+  }
+  return await res.json();
+}
+  
